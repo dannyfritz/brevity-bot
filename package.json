@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "axios": "^0.18.0",
+    "iquotes": "^1.0.2",
     "probot": "^7.0.0"
   },
   "devDependencies": {

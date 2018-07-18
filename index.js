@@ -1,4 +1,5 @@
 const axios = require('axios')
+const iquotes = require('iquotes')
 const travisApi = axios.create({
   baseURL: 'https://api.travis-ci.com',
   headers: {'Travis-API-Version': '3'}
@@ -6,61 +7,85 @@ const travisApi = axios.create({
 
 const buildIdRegex = /\/builds\/(\d+)/gi
 
-const getBuildIdFromUrl = (context) => {
-  context.debug('getBuildIdFromUrl')
-  const matches = buildIdRegex.exec(context.buildUrl)
+const getBuildIdFromUrl = (cache) => {
+  cache.debug('getBuildIdFromUrl')
+  const matches = buildIdRegex.exec(cache.buildUrl)
+  console.log(matches)
   if (matches.length !== 2) {
-    throw new Error(`Could not find buildId from url ${context.buildUrl}`)
+    throw new Error(`Could not find buildId from url ${cache.buildUrl}`)
   }
-  context.buildId = matches[1]
-  return context
+  cache.buildId = matches[1]
+  return cache
 }
 
-const getBuildFromBuildId = (context) => {
-  context.debug('getBuildFromBuildId')
-  return travisApi.get(`/build/${context.buildId}`)
+const getBuildFromBuildId = (cache) => {
+  cache.debug('getBuildFromBuildId')
+  return travisApi.get(`/build/${cache.buildId}`)
     .then((build) => {
-      context.build = build
-      return context
+      cache.build = build
+      return cache
     })
 }
 
-const getJobIdFromBuild = (context) => {
-  context.debug('getJobFromBuild')
-  context.jobId = context.build.data.jobs[0].id
-  return context
+const getJobIdFromBuild = (cache) => {
+  cache.debug('getJobFromBuild')
+  cache.jobId = cache.build.data.jobs[0].id
+  return cache
 }
 
 const PrIdRegex = /(\d+)/gi
 
-const getPrIdFromBuild = (context) => {
-  context.debug('getPrFromBuild')
-  context.prId = 1
-  const matches = PrIdRegex.exec(context.build.data.commit.ref)
+const getPrIdFromBuild = (cache) => {
+  cache.debug('getPrFromBuild')
+  cache.prId = 1
+  const matches = PrIdRegex.exec(cache.build.data.commit.ref)
   if (matches.length !== 2) {
-    throw new Error(`Could not find PrId from path ${context.build.data.commit.ref}`)
+    throw new Error(`Could not find PrId from path ${cache.build.data.commit.ref}`)
   }
-  context.prId = matches[1]
-  return context
+  cache.prId = matches[1]
+  return cache
 }
 
-const getLogFromJobId = (context) => {
-  context.debug('getLogFromJobId')
-  return travisApi.get(`/job/${context.jobId}/log`)
-    .then((response) => {
-      context.log = response.data.content
-      return context
+const getLogFromJobId = (cache) => {
+  cache.debug('getLogFromJobId')
+  return travisApi.get(`/job/${cache.jobId}/log.txt`)
+    .then(response => {
+      cache.log = response.data
+      return cache
     })
 }
 
-const parseLog = (context) => {
-  return context.log
+const getBotMessage = (buildUrl) =>
+`### Hi! 👋 I'm _brevity-bot_, a bot that summarizes failed CI builds!
+I have analyzed the long and drawn-out [build logs](${buildUrl}) and determined the most important parts for you.`
+
+const getQuote = () => {
+  const quote = iquotes.random("dev")
+  return `${quote.quote} ‒ ${quote.author}`
 }
 
-const createComment = (context) => {
-  const body = parseLog(context)
-  const params = {body, owner: context.owner, repo: context.repo, number: context.prId}
-  return context.github.issues.createComment(params)
+const parseTapLog = (cache) => {
+  const lines = cache.log.split(/\r?\n/)
+  const testLines = lines.slice(lines.findIndex((line) => line.includes('npm test')), -13)
+  const logTests = testLines.join('\n').split(/\n# /).slice(1)
+  const failLogTests = logTests.filter(test => /^.*\nnot ok/.test(test))
+  const failOutput = failLogTests.map(t => t.split('\n')).map(test =>
+`#### ${test[0]}
+_${test[1]}_
+\`\`\`
+${test.slice(3, -1).join('\n')}
+\`\`\``
+    , '')
+  failOutput.push(`---\n> ${getQuote()}`)
+  failOutput.unshift('\n---\n')
+  failOutput.unshift(getBotMessage(cache.buildUrl))
+  return failOutput.join("\n")
+}
+
+const createComment = (cache) => {
+  const body = parseTapLog(cache)
+  const params = {body, owner: cache.owner, repo: cache.repo, number: cache.prId}
+  return cache.github.issues.createComment(params)
 }
 
 /**
@@ -69,7 +94,7 @@ const createComment = (context) => {
  */
 module.exports = app => {
   app.on('status', async context => {
-    context.log.debug(`a ${context.payload.state} status payload arrived!`)
+    context.log.debug(`A ${context.payload.state} status payload arrived!`)
     if (context.payload.state !== 'failure') {
       return
     }
@@ -90,7 +115,7 @@ module.exports = app => {
       .then(getPrIdFromBuild)
       .then(getJobIdFromBuild)
       .then(getLogFromJobId)
-      .then((log) => createComment(log, context.github))
+      .then(createComment)
       .catch(context.log.error)
   })
 }
