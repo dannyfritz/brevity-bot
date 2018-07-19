@@ -80,21 +80,27 @@ const parseTapLog = (cache) => {
   cache.debug(logTests)
   const failLogTests = logTests.filter(test => /.*\nnot ok/.test(test))
   cache.debug(failLogTests)
-  const failOutput = failLogTests.map(t => t.split('\n')).map(test =>
+  if (failLogTests.length > 0) {
+    return failLogTests.map(t => t.split('\n')).map(test =>
 `#### ${test[0]}
 \`\`\`
 ${test.slice(3, -1).join('\n')}
 \`\`\``
-    , '')
-  failOutput.push(`---\n> ${getQuote()}`)
-  failOutput.unshift('\n---\n')
-  failOutput.unshift(getBotMessage(cache.buildUrl))
-  return failOutput.join('\n')
+        , '')
+  } else {
+    return [`\`\`\`
+${logTests.join('\n')}
+\`\`\``]
+  }
 }
 
 const createComment = (cache) => {
   cache.debug('parseTapLog')
-  const body = parseTapLog(cache)
+  let body = parseTapLog(cache)
+  body.push(`---\n> ${getQuote()}`)
+  body.unshift('\n---\n')
+  body.unshift(getBotMessage(cache.buildUrl))
+  body = body.join('\n')
   const params = {body, owner: cache.owner, repo: cache.repo, number: cache.prId}
   return cache.github.issues.createComment(params)
 }
