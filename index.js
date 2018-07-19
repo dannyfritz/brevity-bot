@@ -8,6 +8,9 @@ const travisApi = axios.create({
 const getBuildIdFromUrl = (cache) => {
   cache.debug('getBuildIdFromUrl')
   cache.debug(cache.buildUrl)
+  if (!cache.buildUrl.includes('https://travis-ci')) {
+    throw new Error(`This is not a Travis CI status: ${cache.buildUrl}`)
+  }
   const buildIdRegex = /\/builds\/(\d+)/gi
   const matches = buildIdRegex.exec(cache.buildUrl)
   if (matches == null || matches.length !== 2) {
