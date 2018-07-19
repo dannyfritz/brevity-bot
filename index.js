@@ -5,13 +5,12 @@ const travisApi = axios.create({
   headers: {'Travis-API-Version': '3'}
 })
 
-const buildIdRegex = /\/builds\/(\d+)/gi
-
 const getBuildIdFromUrl = (cache) => {
   cache.debug('getBuildIdFromUrl')
+  cache.debug(cache.buildUrl)
+  const buildIdRegex = /\/builds\/(\d+)/gi
   const matches = buildIdRegex.exec(cache.buildUrl)
-  console.log(matches)
-  if (matches.length !== 2) {
+  if (matches == null || matches.length !== 2) {
     throw new Error(`Could not find buildId from url ${cache.buildUrl}`)
   }
   cache.buildId = matches[1]
@@ -20,6 +19,7 @@ const getBuildIdFromUrl = (cache) => {
 
 const getBuildFromBuildId = (cache) => {
   cache.debug('getBuildFromBuildId')
+  cache.debug(cache.buildId)
   return travisApi.get(`/build/${cache.buildId}`)
     .then((build) => {
       cache.build = build
@@ -29,17 +29,17 @@ const getBuildFromBuildId = (cache) => {
 
 const getJobIdFromBuild = (cache) => {
   cache.debug('getJobFromBuild')
+  cache.debug(cache.build.data.jobs)
   cache.jobId = cache.build.data.jobs[0].id
   return cache
 }
 
-const PrIdRegex = /(\d+)/gi
-
 const getPrIdFromBuild = (cache) => {
   cache.debug('getPrFromBuild')
-  cache.prId = 1
+  cache.debug(cache.build.data.commit)
+  const PrIdRegex = /(\d+)/gi
   const matches = PrIdRegex.exec(cache.build.data.commit.ref)
-  if (matches.length !== 2) {
+  if (matches === null || matches.length !== 2) {
     throw new Error(`Could not find PrId from path ${cache.build.data.commit.ref}`)
   }
   cache.prId = matches[1]
@@ -48,6 +48,7 @@ const getPrIdFromBuild = (cache) => {
 
 const getLogFromJobId = (cache) => {
   cache.debug('getLogFromJobId')
+  cache.debug(cache.jobId)
   return travisApi.get(`/job/${cache.jobId}/log.txt`)
     .then(response => {
       cache.log = response.data
@@ -60,18 +61,27 @@ const getBotMessage = (buildUrl) =>
 I have analyzed the long and drawn-out [build logs](${buildUrl}) and determined the most important parts for you.`
 
 const getQuote = () => {
-  const quote = iquotes.random("dev")
+  const quote = iquotes.random('dev')
   return `${quote.quote} ‒ ${quote.author}`
 }
 
 const parseTapLog = (cache) => {
-  const lines = cache.log.split(/\r?\n/)
-  const testLines = lines.slice(lines.findIndex((line) => line.includes('npm test')), -13)
-  const logTests = testLines.join('\n').split(/\n# /).slice(1)
-  const failLogTests = logTests.filter(test => /^.*\nnot ok/.test(test))
+  cache.debug(cache.log)
+  // Travis CI logs include lots of capture sequences to make the logs look pretty
+  // in terminals, but makes processing harder.
+  const sections = cache.log.replace(/\r\n/g, '\n').replace(/\u001b\[0K/g, '').split(/\s*\$\s*/)
+  cache.debug(sections)
+  const testSection = sections.find(section => section.startsWith('npm test'))
+  if (testSection === undefined) {
+    throw new Error(`could not find \`npm test\` inside of log`)
+  }
+  cache.debug(testSection)
+  const logTests = testSection.split(/\n# /)
+  cache.debug(logTests)
+  const failLogTests = logTests.filter(test => /.*\nnot ok/.test(test))
+  cache.debug(failLogTests)
   const failOutput = failLogTests.map(t => t.split('\n')).map(test =>
 `#### ${test[0]}
-_${test[1]}_
 \`\`\`
 ${test.slice(3, -1).join('\n')}
 \`\`\``
@@ -79,10 +89,11 @@ ${test.slice(3, -1).join('\n')}
   failOutput.push(`---\n> ${getQuote()}`)
   failOutput.unshift('\n---\n')
   failOutput.unshift(getBotMessage(cache.buildUrl))
-  return failOutput.join("\n")
+  return failOutput.join('\n')
 }
 
 const createComment = (cache) => {
+  cache.debug('parseTapLog')
   const body = parseTapLog(cache)
   const params = {body, owner: cache.owner, repo: cache.repo, number: cache.prId}
   return cache.github.issues.createComment(params)
