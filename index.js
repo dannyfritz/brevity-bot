@@ -16,13 +16,13 @@ module.exports = app => {
      * @type {Object}
      * @property {Function} debug - A Debug log method
      * @property {String} buildUrl - The Travis Build URL
-     * @property {Number} buildId - The Build ID of the Travis Build
+     * @property {String} buildId - The Build ID of the Travis Build
      * @property {Object} build - The Travis Build Object
      * @property {Number} jobId - The Job ID of the Travis Job
      * @property {String} log - The Travis Log text
      * @property {String} owner - The owner of the GitHub repo
      * @property {String} repo - The name of the GitHub repo
-     * @property {Number} prId - The number of the GitHub Pull Request
+     * @property {String} prId - The number of the GitHub Pull Request
      * @property {Object} github - The github API
      */
     return Promise.resolve({

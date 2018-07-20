@@ -1,0 +1,64 @@
+{
+  "@type": "job",
+  "@href": "/job/135238040",
+  "@representation": "standard",
+  "@permissions": {
+    "read": true,
+    "delete_log": false,
+    "cancel": false,
+    "restart": false,
+    "debug": false
+  },
+  "id": 135238040,
+  "allow_failure": false,
+  "number": "7.1",
+  "state": "failed",
+  "started_at": "2018-07-18T22:34:02Z",
+  "finished_at": "2018-07-18T22:34:25Z",
+  "build": {
+    "@type": "build",
+    "@href": "/build/79389877",
+    "@representation": "minimal",
+    "id": 79389877,
+    "number": "7",
+    "state": "failed",
+    "duration": 23,
+    "event_type": "pull_request",
+    "previous_state": null,
+    "pull_request_title": "failing checks",
+    "pull_request_number": 4,
+    "started_at": "2018-07-18T22:34:02Z",
+    "finished_at": "2018-07-18T22:34:25Z",
+    "private": false
+  },
+  "queue": "builds.ec2",
+  "repository": {
+    "@type": "repository",
+    "@href": "/repo/5385278",
+    "@representation": "minimal",
+    "id": 5385278,
+    "name": "brevitybot-test",
+    "slug": "dannyfritz/brevitybot-test"
+  },
+  "commit": {
+    "@type": "commit",
+    "@representation": "minimal",
+    "id": 124638770,
+    "sha": "9c2d652af3b63e0b27b63d9df0342609c700bf08",
+    "ref": "refs/pull/4/merge",
+    "message": "failing checks",
+    "compare_url": "https://github.com/dannyfritz/brevitybot-test/pull/4",
+    "committed_at": "2018-07-18T00:32:01Z"
+  },
+  "owner": {
+    "@type": "user",
+    "@href": "/user/890049",
+    "@representation": "minimal",
+    "id": 890049,
+    "login": "dannyfritz"
+  },
+  "stage": null,
+  "created_at": "2018-07-18T22:14:26.649Z",
+  "updated_at": "2018-07-18T22:34:25.700Z",
+  "private": false
+}
