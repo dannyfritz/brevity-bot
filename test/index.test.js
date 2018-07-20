@@ -4,7 +4,7 @@ const myProbotApp = require('..')
 const statusFailurePayload = require('./fixtures/status.failure.json')
 const statusSuccessPayload = require('./fixtures/status.success.json')
 
-describe('brevity-bot', () => {
+describe('brevity-bot integration', () => {
   let app, github
 
   beforeEach(() => {
@@ -34,3 +34,4 @@ describe('brevity-bot', () => {
     expect(github.issues.createComment).toHaveBeenCalledTimes(0)
   })
 })
+
