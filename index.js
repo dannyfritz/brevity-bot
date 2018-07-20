@@ -5,6 +5,10 @@ const travisApi = axios.create({
   headers: {'Travis-API-Version': '3'}
 })
 
+/**
+ * Get Travis CI Build ID from Build URL using cache.buildUrl
+ * @param cache
+ */
 const getBuildIdFromUrl = (cache) => {
   cache.debug('getBuildIdFromUrl')
   cache.debug(cache.buildUrl)
@@ -20,6 +24,10 @@ const getBuildIdFromUrl = (cache) => {
   return cache
 }
 
+/**
+ * Retrieve Travis CI Build from Build ID using cache.buildId
+ * @param cache
+ */
 const getBuildFromBuildId = (cache) => {
   cache.debug('getBuildFromBuildId')
   cache.debug(cache.buildId)
@@ -30,6 +38,10 @@ const getBuildFromBuildId = (cache) => {
     })
 }
 
+/**
+ * Retrieve Travis CI Job ID from Build using cache.build
+ * @param cache
+ */
 const getJobIdFromBuild = (cache) => {
   cache.debug('getJobFromBuild')
   cache.debug(cache.build.data.jobs)
@@ -37,6 +49,10 @@ const getJobIdFromBuild = (cache) => {
   return cache
 }
 
+/**
+ * Retrieve Travis CI Job Log from Job ID using cache.jobId
+ * @param cache
+ */
 const getPrIdFromBuild = (cache) => {
   cache.debug('getPrFromBuild')
   cache.debug(cache.build.data.commit)
@@ -49,6 +65,10 @@ const getPrIdFromBuild = (cache) => {
   return cache
 }
 
+/**
+ * Retrieve Travis CI Job Log from Job ID using cache.jobId
+ * @param cache
+ */
 const getLogFromJobId = (cache) => {
   cache.debug('getLogFromJobId')
   cache.debug(cache.jobId)
@@ -59,15 +79,26 @@ const getLogFromJobId = (cache) => {
     })
 }
 
+/**
+ * Gets standard greeting for the bot
+ * @param {String} buildUrl - The Travis CI Build URL
+ */
 const getBotMessage = (buildUrl) =>
 `### Hi! 👋 I'm _brevity-bot_, a bot that summarizes failed CI builds!
 I have analyzed the long and drawn-out [build logs](${buildUrl}) and determined the most important parts for you.`
 
+/**
+ * Gets a random quote
+ */
 const getQuote = () => {
   const quote = iquotes.random('dev')
   return `${quote.quote} ‒ ${quote.author}`
 }
 
+/**
+ * Parses a Travis CI log for TAP output using cache.log
+ * @param cache
+ */
 const parseTapLog = (cache) => {
   cache.debug(cache.log)
   // Travis CI logs include lots of capture sequences to make the logs look pretty
@@ -97,6 +128,10 @@ ${logTests.join('\n')}
   }
 }
 
+/**
+ * Creates a PR comment using cache.owner, cache.repo, cache.prId, cache.github, and cache.log
+ * @param cache
+ */
 const createComment = (cache) => {
   cache.debug('parseTapLog')
   let body = parseTapLog(cache)
