@@ -54,6 +54,10 @@ If you have suggestions for how brevity-bot could be improved, or want to report
 
 For more, check out the [Contributing Guide](CONTRIBUTING.md).
 
+## Challenges Developing
+
+See the [wiki challenges page](https://github.com/dannyfritz/brevity-bot/wiki/Challenges).
+
 ## License
 
 [ISC](LICENSE) © 2018 Danny Fritz <dannyfritz@gmail.com> (https://github.com/dannyfritz/brevity-bot)
