@@ -4,6 +4,20 @@
 
 ![icon](./icon.png)
 
+## Approach
+
+The purpose of `brevity-bot` is to take a complicated failing build log and produce a more bite-sized output. In addition to the failed tests or the syntax error, it will give a programming related quote to keep it light-hearted.
+
+It works like this:
+1. A repo owner creates a PR check for Travis CI and installs `brevity-bot`
+1. A user creates a PR
+1. Travis CI runs the tests and produces a build
+1. `brevity-bot` receieves a `status` webhook
+1. Discards all `status` webhook payload conclusions that are not `failing`
+1. Use the payload `target_url` to get the build log from Travis CI
+1. Parse the build log for TAP output
+1. Post the output as a comment on the pull request
+
 ## Requirements
 
 * [Node >=8.3.0](https://probot.github.io/docs/development/)
