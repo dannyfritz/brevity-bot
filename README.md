@@ -4,6 +4,8 @@
 
 ![icon](./icon.png)
 
+> Icon from [Creative Tail](https://www.creativetail.com/licensing/)
+
 ## Approach
 
 The purpose of `brevity-bot` is to take a complicated failing build log and produce a more bite-sized output. In addition to the failed tests or the syntax error, it will give a programming related quote to keep it light-hearted.
